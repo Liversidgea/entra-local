@@ -4,6 +4,10 @@ import { createAppsRepository, type AppsRepository } from './apps.js';
 import { createAuthCodesRepository, type AuthCodesRepository } from './authCodes.js';
 import { createDeviceCodesRepository, type DeviceCodesRepository } from './deviceCodes.js';
 import { createGroupsRepository, type GroupsRepository } from './groups.js';
+import {
+  createProvisioningRepository,
+  type ProvisioningRepository,
+} from './provisioning.js';
 import { createRefreshTokensRepository, type RefreshTokensRepository } from './refreshTokens.js';
 import { createSessionsRepository, type SessionsRepository } from './sessions.js';
 import { createSigningKeysRepository, type SigningKeysRepository } from './signingKeys.js';
@@ -21,6 +25,7 @@ export interface Repositories {
   refreshTokens: RefreshTokensRepository;
   sessions: SessionsRepository;
   deviceCodes: DeviceCodesRepository;
+  provisioning: ProvisioningRepository;
 }
 
 /** Build all repositories sharing one connection and clock. */
@@ -35,6 +40,7 @@ export function createRepositories(db: Database, clock: Clock): Repositories {
     refreshTokens: createRefreshTokensRepository(db, clock),
     sessions: createSessionsRepository(db, clock),
     deviceCodes: createDeviceCodesRepository(db, clock),
+    provisioning: createProvisioningRepository(db, clock),
   };
 }
 
@@ -43,6 +49,7 @@ export type {
   AuthCodesRepository,
   DeviceCodesRepository,
   GroupsRepository,
+  ProvisioningRepository,
   RefreshTokensRepository,
   SessionsRepository,
   SigningKeysRepository,

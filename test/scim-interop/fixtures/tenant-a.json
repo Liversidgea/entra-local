@@ -1,0 +1,15 @@
+{
+  "name": "Contoso",
+  "users": [
+    { "userPrincipalName": "alex.smith@contoso.test", "displayName": "Alex Smith", "givenName": "Alex", "surname": "Smith" },
+    { "userPrincipalName": "jordan.lee@contoso.test", "displayName": "Jordan Lee", "givenName": "Jordan", "surname": "Lee" },
+    { "userPrincipalName": "pat.morgan@partner.test", "displayName": "Pat Morgan", "givenName": "Pat", "surname": "Morgan" },
+    { "userPrincipalName": "robin.chen@partner.test", "displayName": "Robin Chen", "givenName": "Robin", "surname": "Chen" },
+    { "userPrincipalName": "sam.patel@contoso.test", "displayName": "Sam Patel", "givenName": "Sam", "surname": "Patel", "accountEnabled": false },
+    { "userPrincipalName": "taylor.brooks@contoso.test", "displayName": "Taylor Brooks", "givenName": "Taylor", "surname": "Brooks" }
+  ],
+  "groups": [
+    { "displayName": "Engineering", "members": ["alex.smith@contoso.test", "jordan.lee@contoso.test", "pat.morgan@partner.test"] },
+    { "displayName": "Contoso Sales", "members": ["robin.chen@partner.test", "taylor.brooks@contoso.test"] }
+  ]
+}

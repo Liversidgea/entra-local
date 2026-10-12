@@ -178,3 +178,92 @@ export interface AdminErrorBody {
     details?: AdminFieldIssue[];
   };
 }
+
+// --- SCIM outbound provisioning ------------------------------------------------------------------
+
+/** Which directory objects are provisioned: everything, or the listed groups plus direct members. */
+export type ProvisioningScope = { type: 'all' } | { type: 'groups'; groupIds: string[] };
+
+/** How group-membership PATCH operations are shaped for the target SCIM server. */
+export type PatchDialect = 'compliant' | 'legacy';
+
+export type CycleTrigger = 'manual' | 'restart' | 'on-demand' | 'auto';
+export type CycleOutcome = 'success' | 'partial' | 'failed';
+
+export interface CycleCounts {
+  created: number;
+  updated: number;
+  disabled: number;
+  deleted: number;
+  skipped: number;
+  failed: number;
+}
+
+/** Summary of one provisioning cycle (manual, restart, on-demand or auto-sync). */
+export interface CycleSummary {
+  id: string;
+  trigger: CycleTrigger;
+  startedAt: string;
+  finishedAt: string | null;
+  outcome: CycleOutcome | null;
+  counts: CycleCounts | null;
+}
+
+/** Provisioning config + status. The secret token is write-only: only `hasSecretToken` is exposed. */
+export interface ProvisioningConfig {
+  appId: string;
+  enabled: boolean;
+  tenantUrl: string;
+  hasSecretToken: boolean;
+  scope: ProvisioningScope;
+  autoSync: boolean;
+  patchDialect: PatchDialect;
+  allowInsecureTls: boolean;
+  lastCycle: CycleSummary | null;
+  inFlight: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Result of the connection probe. */
+export interface TestConnectionResult {
+  ok: boolean;
+  statusCode: number | null;
+  message: string;
+}
+
+export type ProvisioningAction =
+  | 'probe'
+  | 'query'
+  | 'create'
+  | 'update'
+  | 'disable'
+  | 'delete'
+  | 'skip';
+export type ProvisioningLogOutcome = 'success' | 'skipped' | 'failure';
+
+/** One SCIM request (or skip decision) recorded in the provisioning log. */
+export interface ProvisioningLog {
+  id: string;
+  cycleId: string | null;
+  at: string;
+  objectType: 'user' | 'group' | null;
+  sourceId: string | null;
+  action: ProvisioningAction;
+  method: string;
+  url: string;
+  statusCode: number | null;
+  outcome: ProvisioningLogOutcome;
+  errorMessage: string | null;
+  requestBody: string | null;
+  responseBody: string | null;
+}
+
+/** A directory object mapped to its SCIM target resource. */
+export interface ProvisionedObject {
+  type: 'user' | 'group';
+  sourceId: string;
+  targetId: string;
+  state: 'active' | 'disabled';
+  lastSyncedAt: string;
+}

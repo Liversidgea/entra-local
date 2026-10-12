@@ -7,11 +7,18 @@ import { useShell } from '../hooks/useToast';
 interface CodeBlockProps {
   lines: Line[];
   ariaLabel: string;
+  /** Polite announcement after a successful copy (defaults to the MSAL snippet wording). */
+  copyAnnouncement?: string;
   'data-testid'?: string;
 }
 
 /** Dark code panel rendering syntax-tinted lines, with a pinned Copy button (copies full text). */
-export function CodeBlock({ lines, ariaLabel, ...rest }: CodeBlockProps): JSX.Element {
+export function CodeBlock({
+  lines,
+  ariaLabel,
+  copyAnnouncement = 'Copied MSAL configuration',
+  ...rest
+}: CodeBlockProps): JSX.Element {
   const { announce } = useShell();
   const [copied, setCopied] = useState(false);
   const text = snippetText(lines);
@@ -20,7 +27,7 @@ export function CodeBlock({ lines, ariaLabel, ...rest }: CodeBlockProps): JSX.El
     const ok = await copyText(text);
     if (!ok) return;
     setCopied(true);
-    announce('Copied MSAL configuration');
+    announce(copyAnnouncement);
     window.setTimeout(() => setCopied(false), 1500);
   }
 

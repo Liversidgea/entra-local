@@ -156,6 +156,50 @@ export const rolePatchSchema = z
   })
   .partial();
 
+// --- SCIM provisioning ------------------------------------------------------------------------
+
+const httpUrl = z
+  .string()
+  .url()
+  .refine((u) => /^https?:\/\//i.test(u), 'must be an http(s) URL')
+  .transform((u) => u.replace(/\/+$/, ''));
+
+export const provisioningScopeSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('all') }),
+  z.object({ type: z.literal('groups'), groupIds: z.array(z.string().min(1)).min(1) }),
+]);
+
+/** `PUT /apps/:id/provisioning`. `secretToken` is required on create, optional on replace. */
+export const provisioningPutSchema = z.object({
+  enabled: z.boolean().default(false),
+  tenantUrl: httpUrl,
+  secretToken: z.string().min(1).optional(),
+  scope: provisioningScopeSchema.default({ type: 'all' }),
+  autoSync: z.boolean().default(false),
+  patchDialect: z.enum(['compliant', 'legacy']).default('compliant'),
+  allowInsecureTls: z.boolean().default(false),
+});
+
+/** Optional unsaved values for `POST .../provisioning/test-connection`. */
+export const provisioningTestSchema = z
+  .object({
+    tenantUrl: httpUrl.optional(),
+    secretToken: z.string().min(1).optional(),
+    allowInsecureTls: z.boolean().optional(),
+  })
+  .default({});
+
+export const onDemandSchema = z.object({ userId: z.string().min(1) });
+
+export const provisioningObjectsQuerySchema = listQuerySchema.extend({
+  type: z.enum(['user', 'group']).optional(),
+});
+
+export const provisioningLogsQuerySchema = listQuerySchema.extend({
+  cycleId: z.string().min(1).optional(),
+  outcome: z.enum(['success', 'skipped', 'failure']).optional(),
+});
+
 // --- System --------------------------------------------------------------------------------------
 
 export const seedSchema = z

@@ -1,0 +1,14 @@
+{
+  "name": "Fabrikam",
+  "users": [
+    { "userPrincipalName": "alex.smith@fabrikam.test", "displayName": "Alex Smith", "givenName": "Alex", "surname": "Smith" },
+    { "userPrincipalName": "jordan.lee@fabrikam.test", "displayName": "Jordan Lee", "givenName": "Jordan", "surname": "Lee" },
+    { "userPrincipalName": "pat.morgan@partner.test", "displayName": "Pat Morgan", "givenName": "Pat", "surname": "Morgan" },
+    { "userPrincipalName": "robin.chen@partner.test", "displayName": "Robin Chen (Fabrikam)", "givenName": "Robin", "surname": "Chen" },
+    { "userPrincipalName": "casey.ng@fabrikam.test", "displayName": "Casey Ng", "givenName": "Casey", "surname": "Ng" }
+  ],
+  "groups": [
+    { "displayName": "Engineering", "members": ["alex.smith@fabrikam.test", "casey.ng@fabrikam.test", "pat.morgan@partner.test"] },
+    { "displayName": "Fabrikam Ops", "members": ["robin.chen@partner.test", "jordan.lee@fabrikam.test"] }
+  ]
+}

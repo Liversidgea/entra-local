@@ -17,6 +17,10 @@ export interface ResetOptions extends SeedOptions {
  * across resets (acceptance criterion 8). `schema_migrations` is never touched.
  */
 const DATA_TABLES_IN_ORDER = [
+  'provisioning_logs',
+  'provisioning_cycles',
+  'provisioning_objects',
+  'app_provisioning',
   'group_members',
   'sessions',
   'authorization_codes',
