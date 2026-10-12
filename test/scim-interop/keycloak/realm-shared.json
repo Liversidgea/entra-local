@@ -1,0 +1,46 @@
+{
+  "realm": "shared",
+  "enabled": true,
+  "scimApiEnabled": true,
+  "duplicateEmailsAllowed": false,
+  "clients": [
+    {
+      "clientId": "entra-provisioning",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "entra-provisioning-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "attributes": {
+        "access.token.lifespan": "86400"
+      },
+      "protocolMappers": [
+        {
+          "name": "scim-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "http://keycloak:8080/realms/shared/scim/v2",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-entra-provisioning",
+      "enabled": true,
+      "serviceAccountClientId": "entra-provisioning",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-realm"
+        ]
+      }
+    }
+  ]
+}

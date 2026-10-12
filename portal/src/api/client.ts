@@ -6,6 +6,7 @@ import type {
   AppScope,
   CertificateInfo,
   CreatedSecret,
+  CycleSummary,
   Discovery,
   Group,
   GeneratedToken,
@@ -14,8 +15,15 @@ import type {
   OptionalClaimKind,
   OptionalClaimsConfig,
   Paged,
+  PatchDialect,
+  ProvisionedObject,
+  ProvisioningConfig,
+  ProvisioningLog,
+  ProvisioningLogOutcome,
+  ProvisioningScope,
   RedirectUri,
   SupportedClaims,
+  TestConnectionResult,
   TokenVariant,
   TokenPreview,
   User,
@@ -190,7 +198,53 @@ export const api = {
     id: string,
     body: { userId: string; tokenType: OptionalClaimKind; tokenVariant: TokenVariant },
   ) => request<GeneratedToken>('POST', `${ADMIN}/apps/${id}/token-generate`, body),
+
+  // ---- SCIM outbound provisioning ----
+  getProvisioning: (id: string) =>
+    request<ProvisioningConfig>('GET', `${ADMIN}/apps/${id}/provisioning`),
+  saveProvisioning: (id: string, body: ProvisioningBody) =>
+    request<ProvisioningConfig>('PUT', `${ADMIN}/apps/${id}/provisioning`, body),
+  deleteProvisioning: (id: string) => request<void>('DELETE', `${ADMIN}/apps/${id}/provisioning`),
+  testProvisioningConnection: (id: string, body: TestConnectionBody = {}) =>
+    request<TestConnectionResult>('POST', `${ADMIN}/apps/${id}/provisioning/test-connection`, body),
+  runProvisioningCycle: (id: string) =>
+    request<CycleSummary>('POST', `${ADMIN}/apps/${id}/provisioning/cycles`),
+  restartProvisioning: (id: string) =>
+    request<CycleSummary>('POST', `${ADMIN}/apps/${id}/provisioning/restart`),
+  provisionOnDemand: (id: string, userId: string) =>
+    request<CycleSummary>('POST', `${ADMIN}/apps/${id}/provisioning/on-demand`, { userId }),
+  listProvisioningLogs: (
+    id: string,
+    q: { top?: number; skip?: number; cycleId?: string; outcome?: ProvisioningLogOutcome } = {},
+  ) =>
+    request<Paged<ProvisioningLog>>('GET', buildPath(`${ADMIN}/apps/${id}/provisioning/logs`, q)),
+  listProvisionedObjects: (
+    id: string,
+    q: { type?: 'user' | 'group'; top?: number; skip?: number } = {},
+  ) =>
+    request<Paged<ProvisionedObject>>(
+      'GET',
+      buildPath(`${ADMIN}/apps/${id}/provisioning/objects`, q),
+    ),
 };
+
+/** PUT body for an app's provisioning config. Omit `secretToken` to keep the stored one. */
+export interface ProvisioningBody {
+  enabled: boolean;
+  tenantUrl: string;
+  secretToken?: string;
+  scope: ProvisioningScope;
+  autoSync: boolean;
+  patchDialect: PatchDialect;
+  allowInsecureTls: boolean;
+}
+
+/** Optional unsaved values for the connection probe (falls back to the saved config). */
+export interface TestConnectionBody {
+  tenantUrl?: string;
+  secretToken?: string;
+  allowInsecureTls?: boolean;
+}
 
 /** Patch body for an app's token configuration (optional claims + group claims). */
 export interface TokenConfigBody {

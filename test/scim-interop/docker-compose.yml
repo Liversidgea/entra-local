@@ -1,0 +1,88 @@
+# SCIM interop suite (spec 2026-10-12_scim-outbound-provisioning, "Interop test environment"):
+# two Entra Local instances provision different, partly overlapping directories into ONE shared
+# Keycloak realm (native SCIM Realm API). Everything shares the `scim-interop` network; host ports
+# are published only for debugging. Run via `pnpm run test:scim-interop`.
+name: entra-local-scim-interop
+
+x-entra: &entra
+  build:
+    context: ../..
+    dockerfile: Dockerfile
+  image: entra-local:scim-interop
+  networks: [scim-interop]
+
+x-entra-env: &entra-env
+  ORIGIN_MODE: compat
+  SEED_ON_START: 'true'
+  LOG_LEVEL: info
+
+services:
+  entra-a:
+    <<: *entra
+    environment:
+      <<: *entra-env
+      TENANT_ID: aaaaaaaa-0000-0000-0000-00000000000a
+      PUBLIC_ORIGIN: https://entra-a:8443
+    ports: ['18443:8443']
+    volumes: [entra-a-data:/app/data]
+
+  entra-b:
+    <<: *entra
+    # Reuse the image built for entra-a.
+    build: !reset null
+    pull_policy: never
+    depends_on:
+      entra-a: { condition: service_started }
+    environment:
+      <<: *entra-env
+      TENANT_ID: bbbbbbbb-0000-0000-0000-00000000000b
+      PUBLIC_ORIGIN: https://entra-b:8443
+    ports: ['28443:8443']
+    volumes: [entra-b-data:/app/data]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    command: ['start-dev', '--features=scim-api', '--import-realm']
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: 'true'
+    volumes: ['./keycloak:/opt/keycloak/data/import:ro']
+    ports: ['18080:8080']
+    networks: [scim-interop]
+    healthcheck:
+      # The image has no curl; probe the management port with bash /dev/tcp.
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"UP"' <&3
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  runner:
+    image: node:24-slim
+    working_dir: /suite
+    volumes: ['./:/suite:ro']
+    environment:
+      # The Entra instances serve self-signed dev certs; trust them for this suite only.
+      NODE_TLS_REJECT_UNAUTHORIZED: '0'
+      ENTRA_A_URL: https://entra-a:8443
+      ENTRA_B_URL: https://entra-b:8443
+      KEYCLOAK_URL: http://keycloak:8080
+    command: ['node', '--test', '--test-reporter=spec', 'interop.test.ts']
+    networks: [scim-interop]
+    depends_on:
+      entra-a: { condition: service_healthy }
+      entra-b: { condition: service_healthy }
+      keycloak: { condition: service_healthy }
+
+networks:
+  scim-interop:
+    driver: bridge
+
+volumes:
+  entra-a-data: {}
+  entra-b-data: {}

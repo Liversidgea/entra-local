@@ -345,3 +345,90 @@ export interface NewDeviceCode {
   interval: number;
   expiresAt: number;
 }
+
+// --- SCIM outbound provisioning ------------------------------------------------------------------
+
+export type ProvisioningScope = { type: 'all' } | { type: 'groups'; groupIds: string[] };
+export type PatchDialect = 'compliant' | 'legacy';
+
+/** Per-app SCIM provisioning target config. `secretToken` never leaves the server. */
+export interface ProvisioningConfig {
+  appId: string;
+  enabled: boolean;
+  tenantUrl: string;
+  secretToken: string;
+  scope: ProvisioningScope;
+  autoSync: boolean;
+  patchDialect: PatchDialect;
+  allowInsecureTls: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type ProvisioningConfigInput = Omit<ProvisioningConfig, 'createdAt' | 'updatedAt'>;
+
+export type ProvisionedObjectType = 'user' | 'group';
+
+/** A source object mapped to its SCIM resource `id` on the target, with last-synced attributes. */
+export interface ProvisionedObject {
+  appId: string;
+  objectType: ProvisionedObjectType;
+  sourceId: string;
+  targetId: string;
+  state: 'active' | 'disabled';
+  /** Flattened SCIM attribute values last written to (or adopted from) the target. */
+  attrs: Record<string, string | boolean | null>;
+  /** Groups only: source user ids last synced as members. */
+  memberIds: string[] | null;
+  lastSyncedAt: number;
+}
+
+export type CycleTrigger = 'manual' | 'restart' | 'on-demand' | 'auto';
+export type CycleOutcome = 'success' | 'partial' | 'failed';
+
+export interface CycleCounts {
+  created: number;
+  updated: number;
+  disabled: number;
+  deleted: number;
+  skipped: number;
+  failed: number;
+}
+
+export interface ProvisioningCycle {
+  id: string;
+  appId: string;
+  trigger: CycleTrigger;
+  startedAt: number;
+  finishedAt: number | null;
+  outcome: CycleOutcome | null;
+  counts: CycleCounts | null;
+}
+
+export type ProvisioningAction =
+  | 'probe'
+  | 'query'
+  | 'create'
+  | 'update'
+  | 'disable'
+  | 'delete'
+  | 'skip';
+
+export interface ProvisioningLog {
+  id: number;
+  appId: string;
+  cycleId: string | null;
+  at: number;
+  objectType: ProvisionedObjectType | null;
+  sourceId: string | null;
+  action: ProvisioningAction;
+  method: string;
+  url: string;
+  statusCode: number | null;
+  outcome: 'success' | 'skipped' | 'failure';
+  errorMessage: string | null;
+  requestBody: string | null;
+  responseBody: string | null;
+}
+
+export type NewProvisioningLog = Omit<ProvisioningLog, 'id'>;

@@ -7,6 +7,10 @@ import type {
   Group,
   GroupMembershipClaims,
   OptionalClaimsConfig,
+  ProvisionedObject,
+  ProvisioningConfig,
+  ProvisioningCycle,
+  ProvisioningLog,
   RedirectUri,
   User,
 } from '../store/types.js';
@@ -187,4 +191,90 @@ export interface PagedResponse<T> {
 
 export function toPaged<T>(value: T[], count: number, top: number, skip: number): PagedResponse<T> {
   return { value, count, top, skip };
+}
+
+// --- SCIM provisioning ----------------------------------------------------------------------------
+
+export interface CycleSummaryDto {
+  id: string;
+  trigger: ProvisioningCycle['trigger'];
+  startedAt: string;
+  finishedAt: string | null;
+  outcome: ProvisioningCycle['outcome'];
+  counts: ProvisioningCycle['counts'];
+}
+
+export function toCycleSummaryDto(cycle: ProvisioningCycle): CycleSummaryDto {
+  return {
+    id: cycle.id,
+    trigger: cycle.trigger,
+    startedAt: isoFromEpoch(cycle.startedAt) as string,
+    finishedAt: isoFromEpoch(cycle.finishedAt),
+    outcome: cycle.outcome,
+    counts: cycle.counts,
+  };
+}
+
+/** Provisioning config DTO. The secret token is write-only: only `hasSecretToken` is exposed. */
+export interface ProvisioningConfigDto {
+  appId: string;
+  enabled: boolean;
+  tenantUrl: string;
+  hasSecretToken: boolean;
+  scope: ProvisioningConfig['scope'];
+  autoSync: boolean;
+  patchDialect: ProvisioningConfig['patchDialect'];
+  allowInsecureTls: boolean;
+  lastCycle: CycleSummaryDto | null;
+  inFlight: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function toProvisioningConfigDto(
+  config: ProvisioningConfig,
+  lastCycle: ProvisioningCycle | undefined,
+  inFlight: boolean,
+): ProvisioningConfigDto {
+  return {
+    appId: config.appId,
+    enabled: config.enabled,
+    tenantUrl: config.tenantUrl,
+    hasSecretToken: config.secretToken !== '',
+    scope: config.scope,
+    autoSync: config.autoSync,
+    patchDialect: config.patchDialect,
+    allowInsecureTls: config.allowInsecureTls,
+    lastCycle: lastCycle ? toCycleSummaryDto(lastCycle) : null,
+    inFlight,
+    createdAt: isoFromEpoch(config.createdAt) as string,
+    updatedAt: isoFromEpoch(config.updatedAt) as string,
+  };
+}
+
+export interface ProvisionedObjectDto {
+  type: ProvisionedObject['objectType'];
+  sourceId: string;
+  targetId: string;
+  state: ProvisionedObject['state'];
+  lastSyncedAt: string;
+}
+
+export function toProvisionedObjectDto(object: ProvisionedObject): ProvisionedObjectDto {
+  return {
+    type: object.objectType,
+    sourceId: object.sourceId,
+    targetId: object.targetId,
+    state: object.state,
+    lastSyncedAt: isoFromEpoch(object.lastSyncedAt) as string,
+  };
+}
+
+export interface ProvisioningLogDto extends Omit<ProvisioningLog, 'at' | 'appId'> {
+  at: string;
+}
+
+export function toProvisioningLogDto(log: ProvisioningLog): ProvisioningLogDto {
+  const { at, appId: _appId, ...rest } = log;
+  return { ...rest, at: isoFromEpoch(at) as string };
 }

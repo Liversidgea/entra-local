@@ -10,6 +10,7 @@ import { registerSpaFallback } from './http/spaFallback.js';
 import { registerAdminApi } from './admin/plugin.js';
 import { registerDiscoveryRoute } from './identity/discovery.js';
 import { registerOAuthRoutes } from './identity/oauth.js';
+import { registerProvisioning } from './provisioning/plugin.js';
 import type { NewSigningKey } from './store/types.js';
 import { registerStore } from './store/plugin.js';
 import { registerTokens } from './tokens/jwks.js';
@@ -91,6 +92,7 @@ export async function buildApp(
   registerDiscoveryRoute(app);
   registerOAuthRoutes(app);
   await registerGraphRoutes(app);
+  registerProvisioning(app);
   await registerAdminApi(app);
   registerSpaFallback(app);
 

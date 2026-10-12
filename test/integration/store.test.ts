@@ -24,6 +24,10 @@ const EXPECTED_TABLES = [
   'refresh_tokens',
   'sessions',
   'device_codes',
+  'app_provisioning',
+  'provisioning_objects',
+  'provisioning_cycles',
+  'provisioning_logs',
 ];
 
 function tableNames(db: ReturnType<typeof openDatabase>): string[] {
@@ -50,7 +54,7 @@ describe('store plugin: migrations (criterion 1)', () => {
           version: number;
         }[]
       ).map((r) => r.version);
-      expect(versions).toEqual([1, 2]);
+      expect(versions).toEqual([1, 2, 3]);
     } finally {
       await ctx.close();
     }
@@ -61,7 +65,7 @@ describe('store plugin: migrations (criterion 1)', () => {
     const dbPath = join(TMP_DIR, `${randomUUID()}.db`);
     try {
       const db1 = openDatabase(dbPath);
-      expect(runMigrations(db1, () => 1)).toEqual([1, 2]);
+      expect(runMigrations(db1, () => 1)).toEqual([1, 2, 3]);
       db1.close();
 
       const db2 = openDatabase(dbPath);

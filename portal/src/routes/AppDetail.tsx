@@ -29,6 +29,7 @@ import { IdChip } from '../components/IdChip';
 import { SecretOnceDialog } from '../components/SecretOnceDialog';
 import { SkeletonRows } from '../components/States';
 import { Tabs } from '../components/Tabs';
+import { ProvisioningSection } from './ProvisioningSection';
 
 const REDIRECT_TYPES = ['spa', 'web', 'native'] as const;
 
@@ -101,6 +102,7 @@ export function AppDetail(): JSX.Element {
             {section === 'scopes' && <ScopeList app={app} onChange={reload} />}
             {section === 'roles' && <AppRoleList app={app} onChange={reload} />}
             {section === 'tokens' && <TokenConfigCard app={app} onSaved={reload} />}
+            {section === 'provisioning' && <ProvisioningSection appId={app.id} />}
             {section === 'msal' && <MsalSnippet app={app} />}
             {section === 'delete' && (
               <DeleteAppCard app={app} onDeleted={() => navigate('/apps')} />
@@ -119,6 +121,7 @@ type AppDetailSection =
   | 'scopes'
   | 'roles'
   | 'tokens'
+  | 'provisioning'
   | 'msal'
   | 'delete';
 
@@ -129,6 +132,7 @@ const APP_DETAIL_SECTIONS: { id: AppDetailSection; label: string }[] = [
   { id: 'scopes', label: 'Expose an API' },
   { id: 'roles', label: 'App roles' },
   { id: 'tokens', label: 'Token configuration' },
+  { id: 'provisioning', label: 'Provisioning' },
   { id: 'msal', label: 'MSAL configuration' },
   { id: 'delete', label: 'Delete' },
 ];

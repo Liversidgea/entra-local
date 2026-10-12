@@ -71,7 +71,8 @@ export function installFetch(handler: Handler = () => undefined): ReturnType<typ
 
     const status = res.status ?? 200;
     const text = res.body === undefined ? '' : JSON.stringify(res.body);
-    return new Response(status === 204 ? '' : text, {
+    // A 204 must have a null body (the Response constructor rejects an empty-string body).
+    return new Response(status === 204 ? null : text, {
       status,
       headers: { 'content-type': 'application/json' },
     });
